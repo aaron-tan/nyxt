@@ -145,10 +145,15 @@ removed, for instance on buffer deletion.")
 (defun xdg-download-dir ()
   (let ((dir (ignore-errors (uiop:run-program '("xdg-user-dir" "DOWNLOAD")
                                               :output '(:string :stripped t)))))
+    ;; Default download directory if the directory is null or unable to be found
     (when (or (null dir) (string= dir (uiop:getenv "HOME")))
       (setf dir (uiop:getenv "XDG_DOWNLOAD_DIR")))
     (unless dir
-      (setf dir (str:concat (uiop:getenv "HOME") "/Downloads/")))
+      ;; Prompt the user for the download directory destination
+      (setf dir (prompt
+		 :input (namestring *default-pathname-defaults*)
+		 :prompt "Open download directory"
+		 :sources (list (make-instance 'file-source)))))
     (unless (str:ends-with? "/" dir)
       (setf dir (str:concat dir "/")))
     dir))
